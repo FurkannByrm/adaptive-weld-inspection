@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="inspection_cell_ros2_control" params="sim_mode:=true">
+    <ros2_control name="InspectionCellSystem" type="system">
+      <hardware>
+        <xacro:if value="${sim_mode}">
+          <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+        </xacro:if>
+        <xacro:unless value="${sim_mode}">
+          <!-- Gerçek donanıma geçildiğinde Doosan veya hibrit sürücü eklentisi -->
+          <plugin>dsr_hardware2/DRHWInterface</plugin>
+          <param name="host">192.168.1.100</param>
+          <param name="port">12345</param>
+          <param name="mode">real</param>
+          <param name="model">h2515</param>
+          <param name="update_rate">100</param>
+        </xacro:unless>
+      </hardware>
+
+      <!-- 1. KIZAK EKLEMİ (Linear Axis) -->
+      <joint name="slider_to_cart">
+        <command_interface name="position">
+          <param name="min">-15</param>
+          <param name="max">15</param>
+        </command_interface>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+        <state_interface name="effort"/>
+      </joint>
+
+      <!-- 2. DOOSAN H2515 EKLEMLERİ (1'den 6'ya) -->
+      <joint name="joint_1">
+        <command_interface name="position">
+          <param name="min">{-2*pi}</param>
+          <param name="max">{2*pi}</param>
+        </command_interface>
+        <command_interface name="velocity"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="joint_2">
+        <command_interface name="position">
+          <param name="min">{-2*pi}</param>
+          <param name="max">{2*pi}</param>
+        </command_interface>
+        <command_interface name="velocity"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="joint_3">
+        <command_interface name="position">
+          <param name="min">{-pi}</param>
+          <param name="max">{pi}</param>
+        </command_interface>
+        <command_interface name="velocity"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="joint_4">
+        <command_interface name="position">
+          <param name="min">{-2*pi}</param>
+          <param name="max">{2*pi}</param>
+        </command_interface>
+        <command_interface name="velocity"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="joint_5">
+        <command_interface name="position">
+          <param name="min">{-2*pi}</param>
+          <param name="max">{2*pi}</param>
+        </command_interface>
+        <command_interface name="velocity"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="joint_6">
+        <command_interface name="position">
+          <param name="min">{-2*pi}</param>
+          <param name="max">{2*pi}</param>
+        </command_interface>
+        <command_interface name="velocity"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+    </ros2_control>
+  </xacro:macro>
+
+</robot>

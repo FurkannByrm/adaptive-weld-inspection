@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="h2515_on_slider">
+
+  <xacro:arg name="color" default="blue"/>
+  <xacro:arg name="sim_mode" default="true"/>
+  <xacro:arg name="namespace" default=""/>
+
+  <!-- 1. KIZAK MEKANİK MODELİ -->
+  <link name="world"/>
+
+  <link name="slideBar">
+    <visual>
+      <geometry>
+        <box size="30.0 0.2 0.1"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="30.0 0.2 0.1"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="500.0"/>
+      <inertia ixx="10.0" ixy="0.0" ixz="0.0" iyy="100.0" iyz="0.0" izz="100.0"/>
+    </inertial>
+  </link>
+
+  <joint name="world_to_base" type="fixed">
+    <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    <parent link="world"/>
+    <child link="slideBar"/>
+  </joint>
+
+  <link name="cart">
+    <visual>
+      <geometry>
+        <box size="0.6 0.6 0.1"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.6 0.6 0.1"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="80.0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <inertia ixx="2.46" ixy="0.0" ixz="0.0" iyy="2.46" iyz="0.0" izz="4.8"/>
+    </inertial>
+  </link>
+
+  <joint name="slider_to_cart" type="prismatic">
+    <axis xyz="1 0 0"/>
+    <origin xyz="0.0 0.0 0.1" rpy="0 0 0"/>
+    <parent link="slideBar"/>
+    <child link="cart"/>
+    <limit effort="10000.0" lower="-15.0" upper="15.0" velocity="0.25"/>
+    <dynamics damping="50.0" friction="10.0"/>
+  </joint>
+
+  <!-- 2. DOOSAN H2515 GÖVDESİ -->
+  <xacro:include filename="$(find dsr_description2)/xacro/macro.h2515.blue.xacro" />
+  <xacro:h2515 namespace="$(arg namespace)"/>
+
+  <!-- 3. KART MONTAJI -->
+  <joint name="cart_to_doosan_mount" type="fixed">
+    <origin xyz="0 0 0.05" rpy="0 0 0"/>
+    <parent link="cart"/>
+    <child link="base_link"/>
+  </joint>
+
+  <!-- 4. ROS2 CONTROL DONANIM KANALI -->
+  <xacro:include filename="$(find awi_description)/urdf/inspection_cell_ros2_control.xacro" />
+  <xacro:inspection_cell_ros2_control sim_mode="$(arg sim_mode)"/>
+
+  <!-- 5. TEK GAZEBO ROS2 CONTROL PLUGIN -->
+  <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(find awi_description)/config/cell_controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+
+</robot>
