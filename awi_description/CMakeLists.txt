@@ -11,6 +11,8 @@ install(DIRECTORY
   config
   launch
   urdf
+  meshes
+  xacro
   DESTINATION share/${PROJECT_NAME}/
 )
 

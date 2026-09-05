@@ -58,12 +58,12 @@
     <origin xyz="0.0 0.0 0.1" rpy="0 0 0"/>
     <parent link="slideBar"/>
     <child link="cart"/>
-    <limit effort="10000.0" lower="-15.0" upper="15.0" velocity="0.25"/>
-    <dynamics damping="50.0" friction="10.0"/>
+    <limit effort="10000.0" lower="-15.0" upper="15.0" velocity="2.0"/>
+    <dynamics damping="5.0" friction="1.0"/>
   </joint>
 
   <!-- 2. DOOSAN H2515 GÖVDESİ -->
-  <xacro:include filename="$(find dsr_description2)/xacro/macro.h2515.blue.xacro" />
+  <xacro:include filename="$(find awi_description)/xacro/macro.h2515.blue.xacro" />
   <xacro:h2515 namespace="$(arg namespace)"/>
 
   <!-- 3. KART MONTAJI -->
@@ -79,9 +79,8 @@
 
   <!-- 5. TEK GAZEBO ROS2 CONTROL PLUGIN -->
   <gazebo>
-    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+    <plugin filename="ign_ros2_control-system" name="ign_ros2_control::IgnitionROS2ControlPlugin">
       <parameters>$(find awi_description)/config/cell_controllers.yaml</parameters>
     </plugin>
   </gazebo>
-
 </robot>

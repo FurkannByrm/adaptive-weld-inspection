@@ -2,10 +2,15 @@ import os
 import tempfile
 import subprocess
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, TimerAction, RegisterEventHandler
-from launch.event_handlers import OnProcessExit
+from launch.actions import (
+    DeclareLaunchArgument, 
+    IncludeLaunchDescription, 
+    OpaqueFunction, 
+    TimerAction, 
+    SetEnvironmentVariable
+)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import FindExecutable, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import FindExecutable, LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -20,11 +25,19 @@ def launch_setup(context, *args, **kwargs):
     xacro_file = os.path.join(pkg_awi_desc, 'urdf', 'cart_with_h2515.urdf.xacro')
     controllers_file = os.path.join(pkg_awi_desc, 'config', 'cell_controllers.yaml')
 
-    # Xacro'yu derle ve temiz bir geçici URDF dosyasına yaz
     temp_urdf = tempfile.NamedTemporaryFile(mode='w', suffix='.urdf', delete=False)
     urdf_content = subprocess.check_output([xacro_exec, xacro_file]).decode('utf-8')
     temp_urdf.write(urdf_content)
     temp_urdf.close()
+
+    env_ament = setenvironmentvariable(
+        name='ament_prefix_path', 
+        value=os.environ.get('ament_prefix_path', '')
+    )
+    env_ld = setenvironmentvariable(
+        name='ld_library_path', 
+        value=os.environ.get('ld_library_path', '')
+    )
 
     # Robot State Publisher
     node_robot_state_publisher = Node(
@@ -34,7 +47,6 @@ def launch_setup(context, *args, **kwargs):
         parameters=[{'robot_description': urdf_content, 'use_sim_time': use_sim_time}]
     )
 
-    # Gazebo Simülatörü
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_gz_sim, 'launch', 'gz_sim.launch.py')
@@ -50,7 +62,7 @@ def launch_setup(context, *args, **kwargs):
         arguments=['-file', temp_urdf.name, '-name', 'awi_cell', '-allow_renaming', 'true']
     )
 
-    # ROS-GZ Bridge (/clock simülasyon zamanı köprüsü)
+    # ROS-GZ Bridge (/clock)
     bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
@@ -69,52 +81,41 @@ def launch_setup(context, *args, **kwargs):
         parameters=[{'use_sim_time': use_sim_time}]
     )
 
-    # 1. Joint State Broadcaster Spawner Düğümü
     joint_state_broadcaster_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=[
-            'joint_state_broadcaster',
-            '-t', 'joint_state_broadcaster/JointStateBroadcaster'
-        ],
+        arguments=['joint_state_broadcaster', '-t', 'joint_state_broadcaster/JointStateBroadcaster'],
         parameters=[{'use_sim_time': use_sim_time}],
         output='screen'
     )
 
-    # 2. Trajectory Controller Spawner Düğümü
     trajectory_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=[
-            'joint_trajectory_controller',
-            '-t', 'joint_trajectory_controller/JointTrajectoryController',
-            '--param-file', controllers_file
-        ],
+        arguments=['joint_trajectory_controller', '--param-file', controllers_file],
         parameters=[{'use_sim_time': use_sim_time}],
         output='screen'
     )
 
-    # Gazebo ve controller_manager oturduktan 4.0 saniye sonra İLK OLARAK State Broadcaster başlasın
     delayed_broadcaster = TimerAction(
-        period=4.0,
+        period=8.0,
         actions=[joint_state_broadcaster_spawner]
     )
 
-    # State Broadcaster başarıyla tamamlanınca (exit olunca) Trajectory Controller yüklensin
-    delay_controller_after_broadcaster = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=joint_state_broadcaster_spawner,
-            on_exit=[trajectory_controller_spawner],
-        )
+    delayed_trajectory_controller = TimerAction(
+        period=12.0,
+        actions=[trajectory_controller_spawner]
     )
 
     return [
+        env_ament,
+        env_ld,
         node_robot_state_publisher,
         gz_sim,
         gz_spawn_entity,
         bridge,
         delayed_broadcaster,
-        delay_controller_after_broadcaster,
+        delayed_trajectory_controller,
         rviz_node
     ]
 
