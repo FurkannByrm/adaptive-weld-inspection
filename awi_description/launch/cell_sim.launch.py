@@ -18,28 +18,37 @@ def launch_setup(context, *args, **kwargs):
     use_sim_time = LaunchConfiguration('use_sim_time', default=True)
 
     pkg_awi_desc = FindPackageShare('awi_description').perform(context)
-    pkg_dsr_desc = FindPackageShare('dsr_description2').perform(context)
     pkg_gz_sim = FindPackageShare('ros_gz_sim').perform(context)
+
+    install_share_path = os.path.dirname(pkg_awi_desc)
+
+    current_ign_path = os.environ.get('IGN_GAZEBO_RESOURCE_PATH', '')
+    current_gz_path = os.environ.get('GZ_SIM_RESOURCE_PATH', '')
+
+    new_ign_path = f"{current_ign_path}:{install_share_path}" if current_ign_path else install_share_path
+    new_gz_path = f"{current_gz_path}:{install_share_path}" if current_gz_path else install_share_path
+
+    os.environ['IGN_GAZEBO_RESOURCE_PATH'] = new_ign_path
+    os.environ['GZ_SIM_RESOURCE_PATH'] = new_gz_path
+
+    env_ign_resource = SetEnvironmentVariable(
+        name='IGN_GAZEBO_RESOURCE_PATH',
+        value=new_ign_path
+    )
+    env_gz_resource = SetEnvironmentVariable(
+        name='GZ_SIM_RESOURCE_PATH',
+        value=new_gz_path
+    )
 
     xacro_exec = FindExecutable(name='xacro').perform(context)
     xacro_file = os.path.join(pkg_awi_desc, 'urdf', 'cart_with_h2515.urdf.xacro')
     controllers_file = os.path.join(pkg_awi_desc, 'config', 'cell_controllers.yaml')
 
-    temp_urdf = tempfile.NamedTemporaryFile(mode='w', suffix='.urdf', delete=False)
     urdf_content = subprocess.check_output([xacro_exec, xacro_file]).decode('utf-8')
+    temp_urdf = tempfile.NamedTemporaryFile(mode='w', suffix='.urdf', delete=False)
     temp_urdf.write(urdf_content)
     temp_urdf.close()
 
-    env_ament = setenvironmentvariable(
-        name='ament_prefix_path', 
-        value=os.environ.get('ament_prefix_path', '')
-    )
-    env_ld = setenvironmentvariable(
-        name='ld_library_path', 
-        value=os.environ.get('ld_library_path', '')
-    )
-
-    # Robot State Publisher
     node_robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -71,7 +80,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # RViz2
-    rviz_config = os.path.join(pkg_dsr_desc, 'rviz', 'default.rviz')
+    rviz_config = os.path.join(pkg_awi_desc, 'rviz', 'slider_robot.rviz')
     rviz_node = Node(
         package='rviz2',
         executable='rviz2',
@@ -108,8 +117,8 @@ def launch_setup(context, *args, **kwargs):
     )
 
     return [
-        env_ament,
-        env_ld,
+        env_ign_resource,
+        env_gz_resource,
         node_robot_state_publisher,
         gz_sim,
         gz_spawn_entity,
