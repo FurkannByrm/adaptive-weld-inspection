@@ -4,14 +4,14 @@
   <xacro:arg name="color" default="blue"/>
   <xacro:arg name="sim_mode" default="true"/>
   <xacro:arg name="namespace" default=""/>
+  <xacro:arg name="component_name" default="right_front_fender"/>
 
-  <!-- 1. KIZAK MEKANİK MODELİ -->
   <link name="world"/>
 
   <link name="slideBar">
     <visual>
       <geometry>
-        <box size="30.0 0.2 0.1"/>
+        <box size="5.0 0.2 0.1"/>
       </geometry>
       <origin xyz="0 0 0" rpy="0 0 0"/>
     </visual>
@@ -23,6 +23,7 @@
     </collision>
     <inertial>
       <mass value="500.0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <inertia ixx="10.0" ixy="0.0" ixz="0.0" iyy="100.0" iyz="0.0" izz="100.0"/>
     </inertial>
   </link>
@@ -62,25 +63,27 @@
     <dynamics damping="5.0" friction="1.0"/>
   </joint>
 
-  <!-- 2. DOOSAN H2515 GÖVDESİ -->
   <xacro:include filename="$(find awi_description)/xacro/macro.h2515.blue.xacro" />
   <xacro:h2515 namespace="$(arg namespace)"/>
 
-  <!-- 3. KART MONTAJI -->
   <joint name="cart_to_doosan_mount" type="fixed">
     <origin xyz="0 0 0.05" rpy="0 0 0"/>
     <parent link="cart"/>
     <child link="base_link"/>
   </joint>
 
-  <!-- 4. ROS2 CONTROL DONANIM KANALI -->
+  <xacro:include filename="$(find awi_description)/urdf/component.xacro" />
+  <xacro:car_component parent="world" component="$(arg component_name)">
+    <origin xyz="2.0 1.75 0.5" rpy="0 0 3.14159"/>
+  </xacro:car_component>
+
   <xacro:include filename="$(find awi_description)/urdf/inspection_cell_ros2_control.xacro" />
   <xacro:inspection_cell_ros2_control sim_mode="$(arg sim_mode)"/>
 
-  <!-- 5. TEK GAZEBO ROS2 CONTROL PLUGIN -->
   <gazebo>
     <plugin filename="ign_ros2_control-system" name="ign_ros2_control::IgnitionROS2ControlPlugin">
       <parameters>$(find awi_description)/config/cell_controllers.yaml</parameters>
     </plugin>
   </gazebo>
+
 </robot>

@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="car_component" params="parent *origin component:=right_front_fender mesh_path:=alt_half_sidex1000.stl">
+    
+    <xacro:property name="iron_color" value="0.6 0.6 0.6 1.0" />
+
+    <link name="car_chassis">
+      <inertial>
+        <mass value="500.0"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="10.0" ixy="0.0" ixz="0.0" iyy="10.0" iyz="0.0" izz="10.0"/>
+      </inertial>
+    </link>
+
+    <joint name="${parent}_to_car_chassis" type="fixed">
+      <xacro:insert_block name="origin" />
+      <parent link="${parent}"/>
+      <child link="car_chassis"/>
+    </joint>
+
+    <link name="${component}">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://awi_description/meshes/car_body/${mesh_path}"/>
+        </geometry>
+        <material name="iron">
+          <color rgba="${iron_color}"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://awi_description/meshes/car_body/${mesh_path}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="50.0"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+      </inertial>
+    </link>
+
+    <joint name="car_chassis_to_${component}" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <parent link="car_chassis"/>
+      <child link="${component}"/>
+    </joint>
+
+    <gazebo reference="car_chassis">
+      <static>true</static>
+    </gazebo>
+
+  </xacro:macro>
+
+</robot>
