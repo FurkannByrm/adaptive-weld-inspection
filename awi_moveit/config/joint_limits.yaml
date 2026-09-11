@@ -1,0 +1,36 @@
+joint_limits:
+  slider_to_cart:
+    has_velocity_limits: true
+    max_velocity: 2.0
+    has_acceleration_limits: true
+    max_acceleration: 1.0
+  joint_1:
+    has_velocity_limits: true
+    max_velocity: 2.09
+    has_acceleration_limits: true
+    max_acceleration: 2.5
+  joint_2:
+    has_velocity_limits: true
+    max_velocity: 2.09
+    has_acceleration_limits: true
+    max_acceleration: 2.5
+  joint_3:
+    has_velocity_limits: true
+    max_velocity: 3.14
+    has_acceleration_limits: true
+    max_acceleration: 3.0
+  joint_4:
+    has_velocity_limits: true
+    max_velocity: 3.92
+    has_acceleration_limits: true
+    max_acceleration: 4.0
+  joint_5:
+    has_velocity_limits: true
+    max_velocity: 3.92
+    has_acceleration_limits: true
+    max_acceleration: 4.0
+  joint_6:
+    has_velocity_limits: true
+    max_velocity: 6.28
+    has_acceleration_limits: true
+    max_acceleration: 5.0
