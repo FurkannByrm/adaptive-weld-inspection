@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <robot name="h2515_on_slider">
-  <!-- 7 Eksen Birleşik Grup (Kızak + Kol) -->
-  <group name="arm_with_slider">
-    <chain base_link="world" tip_link="link_6"/>
-  </group>
 
-  <!-- Sadece 6 Eksen Kol Grubu (Kızak Sabitken Hareket İçin) -->
   <group name="arm">
     <chain base_link="base_link" tip_link="link_6"/>
   </group>
 
-  <!-- End-Effector Tanımı -->
-  <end_effector name="flange_eef" parent_link="link_6" group="arm_with_slider"/>
+  <group name="slider">
+    <joint name="slider_to_cart"/>
+  </group>
 
-  <!-- Varsayılan Güvenli Pozisyon (Home) -->
+  <group name="arm_with_slider">
+    <chain base_link="world" tip_link="link_6"/>
+  </group>
+
+  <end_effector name="arm_eef" parent_link="link_6" group="arm"/>
+
   <group_state name="home" group="arm_with_slider">
     <joint name="slider_to_cart" value="0.0"/>
     <joint name="joint_1" value="0.0"/>
@@ -24,7 +25,16 @@
     <joint name="joint_6" value="0.0"/>
   </group_state>
 
-  <!-- Bitişik Parçaların Çarpışma Kontrollerini Kapatma -->
+  <group_state name="arm_home" group="arm">
+    <joint name="joint_1" value="0.0"/>
+    <joint name="joint_2" value="0.0"/>
+    <joint name="joint_3" value="0.0"/>
+    <joint name="joint_4" value="0.0"/>
+    <joint name="joint_5" value="0.0"/>
+    <joint name="joint_6" value="0.0"/>
+  </group_state>
+
+  <!-- Çarpışma Muafiyetleri -->
   <disable_collisions link1="slideBar" link2="cart" reason="Adjacent"/>
   <disable_collisions link1="cart" link2="base_link" reason="Adjacent"/>
   <disable_collisions link1="world" link2="slideBar" reason="Adjacent"/>

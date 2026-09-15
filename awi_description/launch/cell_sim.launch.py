@@ -75,21 +75,12 @@ def launch_setup(context, *args, **kwargs):
     bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
-        arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
+        arguments=[
+            '/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock'
+        ],
         output='screen'
     )
-
-    # RViz2
-    rviz_config = os.path.join(pkg_awi_desc, 'rviz', 'slider_robot.rviz')
-    rviz_node = Node(
-        package='rviz2',
-        executable='rviz2',
-        name='rviz2',
-        output='screen',
-        arguments=['-d', rviz_config],
-        parameters=[{'use_sim_time': use_sim_time}]
-    )
-
+    # 1. Broadcaster Spawner
     joint_state_broadcaster_spawner = Node(
         package='controller_manager',
         executable='spawner',
@@ -98,10 +89,20 @@ def launch_setup(context, *args, **kwargs):
         output='screen'
     )
 
-    trajectory_controller_spawner = Node(
+    # 2. Slider Controller Spawner
+    slider_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=['joint_trajectory_controller', '--param-file', controllers_file],
+        arguments=['slider_controller', '--param-file', controllers_file],
+        parameters=[{'use_sim_time': use_sim_time}],
+        output='screen'
+    )
+
+    # 3. Arm Controller Spawner
+    arm_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['arm_controller', '--param-file', controllers_file],
         parameters=[{'use_sim_time': use_sim_time}],
         output='screen'
     )
@@ -111,9 +112,9 @@ def launch_setup(context, *args, **kwargs):
         actions=[joint_state_broadcaster_spawner]
     )
 
-    delayed_trajectory_controller = TimerAction(
-        period=12.0,
-        actions=[trajectory_controller_spawner]
+    delayed_controllers = TimerAction(
+        period=11.0,
+        actions=[slider_controller_spawner, arm_controller_spawner]
     )
 
     return [
@@ -124,8 +125,7 @@ def launch_setup(context, *args, **kwargs):
         gz_spawn_entity,
         bridge,
         delayed_broadcaster,
-        delayed_trajectory_controller,
-        rviz_node
+        delayed_controllers
     ]
 
 def generate_launch_description():

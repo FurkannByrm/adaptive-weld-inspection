@@ -2,14 +2,25 @@ moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControll
 
 moveit_simple_controller_manager:
   controller_names:
-    - joint_trajectory_controller
+    - slider_controller
+    - arm_controller
 
-  joint_trajectory_controller:
+  slider_controller:
     action_ns: follow_joint_trajectory
     type: FollowJointTrajectory
     default: true
+    command_interfaces:
+      - position
     joints:
       - slider_to_cart
+
+  arm_controller:
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: true
+    command_interfaces:
+      - position
+    joints:
       - joint_1
       - joint_2
       - joint_3

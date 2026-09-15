@@ -1,18 +1,40 @@
 controller_manager:
   ros__parameters:
-    update_rate: 100  # Hz
+    update_rate: 100
     use_sim_time: true
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-    joint_trajectory_controller:
+    slider_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
-joint_trajectory_controller:
+    arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+slider_controller:
   ros__parameters:
     joints:
       - slider_to_cart
+
+    command_interfaces:
+      - position
+
+    state_interfaces:
+      - position
+      - velocity
+
+    open_loop_control: true
+    allow_partial_joints_goal: false
+    allow_integration_in_goal_trajectories: true
+
+    constraints:
+      stopped_velocity_tolerance: 0.2
+      goal_time: 0.0
+
+arm_controller:
+  ros__parameters:
+    joints:
       - joint_1
       - joint_2
       - joint_3
@@ -27,5 +49,10 @@ joint_trajectory_controller:
       - position
       - velocity
 
-    open_loop_control: false
-    allow_partial_joints_goal: true
+    open_loop_control: true
+    allow_partial_joints_goal: false
+    allow_integration_in_goal_trajectories: true
+
+    constraints:
+      stopped_velocity_tolerance: 0.2
+      goal_time: 0.0
